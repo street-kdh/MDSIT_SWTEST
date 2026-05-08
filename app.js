@@ -380,6 +380,9 @@ const App = {
         st.textContent = '업로드 중...';
         st.className   = 'up-status';
 
+        const nextBtn = document.getElementById('btn-next-q2');
+        nextBtn.disabled = true;
+
         this.upload(blob, 1, text, p => {
             st.textContent = `업로드 중... ${Math.round(p * 100)}%`;
         }).then(r => {
@@ -388,6 +391,8 @@ const App = {
         }).catch(() => {
             st.textContent = '업로드 실패 (네트워크를 확인해주세요)';
             st.className   = 'up-status err';
+        }).finally(() => {
+            nextBtn.disabled = false;
         });
 
         document.getElementById('btn-q1-done').disabled = false;
@@ -434,6 +439,9 @@ const App = {
         st.textContent = '영상을 업로드 중입니다...';
         st.className   = 'up-status';
 
+        const exitBtn = document.getElementById('btn-exit');
+        exitBtn.disabled = true;
+
         this.upload(blob, 2, text, p => {
             st.textContent = `업로드 중... ${Math.round(p * 100)}%`;
         }).then(r => {
@@ -444,6 +452,8 @@ const App = {
         }).catch(() => {
             st.textContent = '업로드 실패. 관리자에게 문의해주세요.';
             st.className   = 'up-status err';
+        }).finally(() => {
+            exitBtn.disabled = false;
         });
     },
 
@@ -466,6 +476,14 @@ const App = {
         $('btn-q1-done').addEventListener('click',  () => this.onQ1Done());
         $('btn-next-q2').addEventListener('click',  () => this.onQ2Start());
         $('btn-q2-done').addEventListener('click',  () => this.onQ2Done());
+
+        $('btn-exit').addEventListener('click', () => {
+            this.applicant   = null;
+            this.transcripts = {};
+            $('save-msg').textContent = '';
+            $('save-msg').className   = 'save-msg';
+            this.show('main');
+        });
     }
 };
 
