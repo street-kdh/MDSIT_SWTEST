@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0D1B2A">
+  <title>MDS인텔리전스 사전인터뷰</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 1 · 메인 / 정보 입력
+══════════════════════════════════════════════ -->
+<div id="screen-main" class="screen active">
+  <div class="main-wrap">
+
+    <div class="header">
+      <div class="logo-badge">MDS Intelligence</div>
+      <h1>소프트웨어검증팀<br>사전인터뷰</h1>
+    </div>
+
+    <!-- 지원자 정보 입력 -->
+    <div class="card form-card">
+      <div class="form-group">
+        <label for="inp-name">이름</label>
+        <input id="inp-name" type="text" placeholder="홍길동" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label for="inp-birth">생년월일 <span class="hint">(숫자 8자리)</span></label>
+        <input id="inp-birth" type="text" placeholder="19900101"
+               maxlength="8" inputmode="numeric" pattern="[0-9]{8}">
+      </div>
+      <div class="form-group">
+        <label for="inp-phone">전화번호</label>
+        <input id="inp-phone" type="tel" placeholder="01012345678" inputmode="tel">
+      </div>
+      <button id="btn-save" class="btn btn-save">저장</button>
+      <div id="save-msg" class="save-msg"></div>
+    </div>
+
+    <!-- 안내 -->
+    <div class="info-box">
+      <p>📋 질문은 <strong>2가지</strong>이며, 각 항목당 <strong>5분 내외</strong>의 시간이 필요합니다.</p>
+      <p>⚠️ 시작버튼을 누르면 <strong>중단 없이 제출</strong>되므로 신중하게 눌러주세요.</p>
+    </div>
+
+    <!-- 버튼 영역 -->
+    <div class="action-area">
+      <div class="test-wrap">
+        <button id="btn-test" class="btn btn-outline">🎥 카메라 / 마이크 테스트</button>
+        <p class="sub-note">* 테스트 영상은 제출되지 않습니다</p>
+      </div>
+      <button id="btn-start" class="btn btn-primary">인터뷰 시작 →</button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 2 · 테스트 녹화 (10초 카운트)
+══════════════════════════════════════════════ -->
+<div id="screen-test" class="screen">
+  <div class="cam-wrap">
+    <video id="vid-test-live" autoplay muted playsinline webkit-playsinline></video>
+    <div class="cam-overlay">
+      <p class="overlay-msg">테스트 중입니다. 카메라와 마이크를 확인해보세요.</p>
+      <div id="test-count" class="count-big">10</div>
+      <div class="rec-badge"><span class="rec-dot"></span>REC</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 3 · 테스트 재생
+══════════════════════════════════════════════ -->
+<div id="screen-test-play" class="screen dark-center">
+  <div class="play-card">
+    <h2>테스트 녹화 완료</h2>
+    <div class="play-video-wrap">
+      <video id="vid-test-pb" playsinline webkit-playsinline></video>
+      <div id="play-overlay" class="play-overlay">
+        <button id="btn-play-test" class="play-circle-btn">▶</button>
+      </div>
+    </div>
+    <div id="play-after" class="play-after" style="display:none">
+      <button id="btn-replay"    class="btn btn-outline">↺ 다시 재생</button>
+      <button id="btn-back-main" class="btn btn-secondary">← 메인으로</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 4 · 질문 1 녹화
+══════════════════════════════════════════════ -->
+<div id="screen-q1" class="screen">
+  <div class="cam-wrap">
+    <video id="vid-q1" autoplay muted playsinline webkit-playsinline></video>
+    <div class="cam-overlay">
+      <div class="q-badge">1 / 2</div>
+      <div id="q1-timer" class="timer">10:00</div>
+      <p class="overlay-q">저희에게 지원자님을 소개해주세요</p>
+      <div class="badge-row">
+        <div class="rec-badge"><span class="rec-dot"></span>REC</div>
+        <div id="sr-q1" class="sr-badge" style="display:none"><span class="sr-dot"></span>음성 인식 중</div>
+      </div>
+      <button id="btn-q1-done" class="btn btn-done">완료</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 5 · Q1 완료 → Q2 대기
+══════════════════════════════════════════════ -->
+<div id="screen-q1-done" class="screen dark-center">
+  <div class="msg-card">
+    <div class="icon-big">✓</div>
+    <h2>첫 번째 답변 완료</h2>
+    <p>준비가 되셨으면 다음 항목을 위하여<br>다음 버튼을 눌러주세요.</p>
+    <div id="up-status-1" class="up-status">업로드 중...</div>
+    <button id="btn-next-q2" class="btn btn-primary">다음 →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 6 · 질문 2 녹화
+══════════════════════════════════════════════ -->
+<div id="screen-q2" class="screen">
+  <div class="cam-wrap">
+    <video id="vid-q2" autoplay muted playsinline webkit-playsinline></video>
+    <div class="cam-overlay">
+      <div class="q-badge">2 / 2</div>
+      <div id="q2-timer" class="timer">10:00</div>
+      <p class="overlay-q">소프트웨어 검증 직무를 지원하게 된 이유를 말씀해주세요</p>
+      <div class="badge-row">
+        <div class="rec-badge"><span class="rec-dot"></span>REC</div>
+        <div id="sr-q2" class="sr-badge" style="display:none"><span class="sr-dot"></span>음성 인식 중</div>
+      </div>
+      <button id="btn-q2-done" class="btn btn-done">완료</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 7 · 완료
+══════════════════════════════════════════════ -->
+<div id="screen-complete" class="screen dark-center">
+  <div class="msg-card">
+    <div class="icon-big">🎉</div>
+    <h2>인터뷰 완료</h2>
+    <p>
+      고생많으셨습니다.<br><br>
+      제출해주시는 과제 결과와 사전인터뷰를 바탕으로<br>
+      <strong>일주일 내로 결과를 연락드리겠습니다.</strong><br><br>
+      감사합니다.
+    </p>
+    <div id="up-status-2" class="up-status">영상을 업로드 중입니다...</div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
