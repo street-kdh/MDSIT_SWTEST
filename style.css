@@ -70,10 +70,13 @@ body {
 }
 
 .header-logo {
-  height: 18px;
+  height: 22px;
   width: auto;
   display: block;
   object-fit: contain;
+  background: #fff;
+  border-radius: 4px;
+  padding: 2px 3px;
 }
 
 .header h1 {
