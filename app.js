@@ -335,6 +335,10 @@ const App = {
 
     /* ── 인터뷰 시작 → Q1 ──────────────────────── */
     async onStart() {
+        if (!document.getElementById('chk-consent').checked) {
+            alert('개인정보 수집 · 이용에 동의해주세요.');
+            return;
+        }
         if (!this.applicant) {
             alert('이름, 생년월일, 전화번호를 입력해주세요.');
             return;
@@ -465,6 +469,10 @@ const App = {
         $('btn-test').addEventListener('click',      () => this.onTest());
         $('btn-start').addEventListener('click',     () => this.onStart());
 
+        $('chk-consent').addEventListener('change', e => {
+            $('btn-start').disabled = !e.target.checked;
+        });
+
         $('btn-play-test').addEventListener('click', () => this.onPlayTest());
         $('btn-replay').addEventListener('click',    () => this.onReplay());
         $('btn-back-main').addEventListener('click', () => this.onBackMain());
@@ -482,6 +490,8 @@ const App = {
             this.transcripts = {};
             $('save-msg').textContent = '';
             $('save-msg').className   = 'save-msg';
+            $('chk-consent').checked  = false;
+            $('btn-start').disabled   = true;
             this.show('main');
         });
     }

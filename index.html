@@ -45,13 +45,31 @@
       <p>⚠️ 시작버튼을 누르면 <strong>중단 없이 제출</strong>되므로 신중하게 눌러주세요.</p>
     </div>
 
+    <!-- 개인정보 수집 동의 -->
+    <div class="consent-box">
+      <div class="consent-text">
+        <p class="consent-title">개인정보 수집 · 이용에 대한 동의</p>
+        <p>MDS인텔리전스(이하 "회사")는 채용 사전인터뷰 진행을 위하여 아래와 같이 개인정보를 수집 · 이용합니다.</p>
+        <ul>
+          <li><strong>수집 항목:</strong> 이름, 생년월일, 전화번호, 인터뷰 영상 및 음성 녹화 데이터</li>
+          <li><strong>수집 목적:</strong> 채용 전형 진행 및 평가</li>
+          <li><strong>보유 기간:</strong> 채용 절차 종료 후 6개월 이내 파기</li>
+        </ul>
+        <p class="consent-notice">※ 개인정보 수집 · 이용에 동의하지 않을 권리가 있으며, 동의 거부 시 인터뷰 진행이 제한될 수 있습니다.</p>
+      </div>
+      <label class="consent-check-label" for="chk-consent">
+        <input type="checkbox" id="chk-consent">
+        <span>위 내용을 확인하였으며, 개인정보 수집 · 이용에 <strong>동의합니다</strong>.</span>
+      </label>
+    </div>
+
     <!-- 버튼 영역 -->
     <div class="action-area">
       <div class="test-wrap">
         <button id="btn-test" class="btn btn-outline">🎥 카메라 / 마이크 테스트</button>
         <p class="sub-note">* 테스트 영상은 제출되지 않습니다</p>
       </div>
-      <button id="btn-start" class="btn btn-primary">인터뷰 시작 →</button>
+      <button id="btn-start" class="btn btn-primary" disabled>인터뷰 시작 →</button>
     </div>
 
   </div>
