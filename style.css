@@ -70,13 +70,15 @@ body {
 }
 
 .header-logo {
-  height: 22px;
-  width: auto;
   display: block;
-  object-fit: contain;
+  height: 28px;
+  width: 28px;       /* 원본 84×84 심볼 영역만 노출 */
+  object-fit: cover;
+  object-position: left center;
   background: #fff;
   border-radius: 4px;
-  padding: 2px 3px;
+  padding: 2px;
+  flex-shrink: 0;
 }
 
 .header h1 {
