@@ -344,6 +344,14 @@ const App = {
             return;
         }
 
+        // 시작 횟수 서버 기록 (실패해도 진행)
+        const { name, birthdate, phone, id } = this.applicant;
+        fetch(`${API}/api/start`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ applicantId: id, name, birthdate, phone })
+        }).catch(() => {});
+
         try {
             const stream = await this.getStream();
             document.getElementById('vid-q1').srcObject = stream;
