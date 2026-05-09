@@ -53,32 +53,20 @@ body {
 /* Header */
 .header { text-align: center; padding: 12px 0 4px; }
 
-.logo-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  color: var(--accent);
-  background: rgba(0,188,212,.1);
-  border: 1px solid rgba(0,188,212,.3);
-  border-radius: 20px;
-  padding: 4px 14px;
+.logo-banner {
+  display: inline-block;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 20px;
   margin-bottom: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.3);
 }
 
 .header-logo {
   display: block;
-  height: 28px;
-  width: 28px;       /* 원본 84×84 심볼 영역만 노출 */
-  object-fit: cover;
-  object-position: left center;
-  background: #fff;
-  border-radius: 4px;
-  padding: 2px;
-  flex-shrink: 0;
+  height: 32px;
+  width: auto;
+  object-fit: contain;
 }
 
 .header h1 {
