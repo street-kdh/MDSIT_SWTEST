@@ -108,7 +108,9 @@ const App = {
             if (!this.recorder || this.recorder.state === 'inactive') {
                 return resolve(new Blob(this.chunks, { type: mime }));
             }
-            this.recorder.onstop = () => resolve(new Blob(this.chunks, { type: mime }));
+            const finish = () => resolve(new Blob(this.chunks, { type: mime }));
+            const guard = setTimeout(finish, 5000);   // onstop 미발생 대비
+            this.recorder.onstop = () => { clearTimeout(guard); finish(); };
             this.recorder.stop();
         });
     },
@@ -421,6 +423,7 @@ const App = {
 
     /* ── Q2 시작 ────────────────────────────────── */
     async onQ2Start() {
+        document.getElementById('btn-next-q2').disabled = true;   // 더블클릭 방지
         try {
             const stream = await this.getStream();
             document.getElementById('vid-q2').srcObject = stream;
@@ -440,7 +443,10 @@ const App = {
 
             this.speak('두번째입니다. 소프트웨어 검증이라는 직무를 지원하게된 이유를 말씀해주세요')
                 .then(() => this.startTranscription('sr-q2'));
-        } catch (err) { this._camErr(err); }
+        } catch (err) {
+            document.getElementById('btn-next-q2').disabled = false;
+            this._camErr(err);
+        }
     },
 
     /* ── Q2 완료 ────────────────────────────────── */
