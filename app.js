@@ -327,10 +327,19 @@ const App = {
         vid.play();
     },
 
-    onBackMain() {
+    _clearTestBlob() {
         if (this.testBlobUrl) { URL.revokeObjectURL(this.testBlobUrl); this.testBlobUrl = null; }
         document.getElementById('vid-test-pb').src = '';
-        this.show('main');
+    },
+
+    onBackMain() {   // 테스트 재생 화면 → 인터뷰 바로 시작
+        this._clearTestBlob();
+        this.onStart();
+    },
+
+    onRetest() {     // 테스트 재생 화면 → 테스트 다시하기
+        this._clearTestBlob();
+        this.onTest();
     },
 
     /* ── 인터뷰 시작 → Q1 ──────────────────────── */
@@ -442,9 +451,7 @@ const App = {
         const text = this.stopTranscription('sr-q2');
         this.transcripts[2] = text;
 
-        const blob = await this.stopRec();
-        this._releaseStream();
-
+        // 즉시 완료 화면으로 전환 (타이머 자동 종료 시 버튼 비활성 상태로 대기하는 문제 해결)
         this.show('complete');
 
         const st = document.getElementById('up-status-2');
@@ -453,6 +460,9 @@ const App = {
 
         const exitBtn = document.getElementById('btn-exit');
         exitBtn.disabled = true;
+
+        const blob = await this.stopRec();
+        this._releaseStream();
 
         this.upload(blob, 2, text, p => {
             st.textContent = `업로드 중... ${Math.round(p * 100)}%`;
@@ -483,6 +493,7 @@ const App = {
 
         $('btn-play-test').addEventListener('click', () => this.onPlayTest());
         $('btn-replay').addEventListener('click',    () => this.onReplay());
+        $('btn-retest').addEventListener('click',    () => this.onRetest());
         $('btn-back-main').addEventListener('click', () => this.onBackMain());
 
         $('vid-test-pb').addEventListener('ended', () => {
