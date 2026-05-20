@@ -10,6 +10,7 @@ const API = (window.INTERVIEW_CONFIG && window.INTERVIEW_CONFIG.apiBase) || '';
 const App = {
     /* ── State ──────────────────────────────────── */
     applicant:        null,   // { id, name, birthdate, phone }
+    currentAttempt:   null,   // 현재 인터뷰 회차
     stream:           null,   // MediaStream
     recorder:         null,   // MediaRecorder
     chunks:           [],     // 녹화 청크
@@ -21,10 +22,21 @@ const App = {
     currentText:      '',     // 인식 중 누적 텍스트
     transcripts:      {},     // { 1: '...', 2: '...' } 최종 전사
 
+    // 질문 (서버에서 동적 로드)
+    questions:        null,
+
     /* ── Init ───────────────────────────────────── */
     init() {
         this._bindAll();
         this._loadVoices();
+        this._loadQuestions();
+    },
+
+    _loadQuestions() {
+        fetch(`${API}/api/questions`)
+            .then(r => r.json())
+            .then(data => { this.questions = data; })
+            .catch(() => {});
     },
 
     /* ── Screen switcher ────────────────────────── */
@@ -214,6 +226,9 @@ const App = {
                 birthdate:   birthdate,
                 phone:       phone
             });
+            if (this.currentAttempt) {
+                qs.set('attempt', this.currentAttempt);
+            }
             xhr.open('POST', `${API}/api/upload?` + qs);
 
             if (onProgress) {
@@ -272,6 +287,8 @@ const App = {
 
             if (data.success) {
                 this.applicant  = { id: data.id, name, birthdate, phone };
+                this.currentAttempt = null;
+                this.transcripts = {};
                 msg.textContent = '✓ 저장되었습니다.';
                 msg.className   = 'save-msg ok';
             } else {
@@ -355,13 +372,22 @@ const App = {
             return;
         }
 
-        // 시작 횟수 서버 기록 (실패해도 진행)
+        // 시작 횟수 서버 기록
         const { name, birthdate, phone, id } = this.applicant;
-        fetch(`${API}/api/start`, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ applicantId: id, name, birthdate, phone })
-        }).catch(() => {});
+        this.currentAttempt = null;
+        try {
+            const startRes = await fetch(`${API}/api/start`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ applicantId: id, name, birthdate, phone })
+            });
+            if (startRes.ok) {
+                const startData = await startRes.json();
+                if (startData && startData.attempt) {
+                    this.currentAttempt = startData.attempt;
+                }
+            }
+        } catch {}
 
         try {
             const stream = await this.getStream();
@@ -381,7 +407,9 @@ const App = {
             );
 
             // TTS 종료 후 음성 인식 시작 (TTS 음성이 인식되지 않도록)
-            this.speak('첫번째입니다. 저희에게 지원자님을 소개해주세요.')
+            const q1 = this.questions && this.questions.Q1;
+            if (q1) document.getElementById('overlay-q1').textContent = q1.display;
+            this.speak(q1 ? q1.tts : '')
                 .then(() => this.startTranscription('sr-q1'));
         } catch (err) { this._camErr(err); }
     },
@@ -441,7 +469,9 @@ const App = {
                 () => this.onQ2Done()
             );
 
-            this.speak('두번째입니다. 소프트웨어 검증이라는 직무를 지원하게된 이유를 말씀해주세요')
+            const q2 = this.questions && this.questions.Q2;
+            if (q2) document.getElementById('overlay-q2').textContent = q2.display;
+            this.speak(q2 ? q2.tts : '')
                 .then(() => this.startTranscription('sr-q2'));
         } catch (err) {
             document.getElementById('btn-next-q2').disabled = false;
@@ -512,6 +542,7 @@ const App = {
 
         $('btn-exit').addEventListener('click', () => {
             this.applicant   = null;
+            this.currentAttempt = null;
             this.transcripts = {};
             $('save-msg').textContent = '';
             $('save-msg').className   = 'save-msg';
