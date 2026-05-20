@@ -487,10 +487,78 @@ const App = {
         const text = this.stopTranscription('sr-q2');
         this.transcripts[2] = text;
 
-        // 즉시 완료 화면으로 전환 (타이머 자동 종료 시 버튼 비활성 상태로 대기하는 문제 해결)
-        this.show('complete');
+        const blob = await this.stopRec();
+        this._releaseStream();
+
+        this.show('q2-done');
 
         const st = document.getElementById('up-status-2');
+        st.textContent = '업로드 중...';
+        st.className   = 'up-status';
+
+        const nextBtn = document.getElementById('btn-next-q3');
+        nextBtn.disabled = true;
+
+        this.upload(blob, 2, text, p => {
+            st.textContent = `업로드 중... ${Math.round(p * 100)}%`;
+        }).then(r => {
+            st.textContent = (r && r.success) ? '✓ 업로드 완료' : '업로드 실패';
+            st.className   = (r && r.success) ? 'up-status ok'  : 'up-status err';
+        }).catch(() => {
+            st.textContent = '업로드 실패 (네트워크를 확인해주세요)';
+            st.className   = 'up-status err';
+        }).finally(() => {
+            nextBtn.disabled = false;
+        });
+
+        document.getElementById('btn-q2-done').disabled = false;
+    },
+
+    /* ── Q3 시작 ────────────────────────────────── */
+    async onQ3Start() {
+        document.getElementById('btn-next-q3').disabled = true;
+        try {
+            const stream = await this.getStream();
+            document.getElementById('vid-q3').srcObject = stream;
+            this.show('q3');
+            this.startRec(stream);
+
+            const q3 = this.questions && this.questions.Q3;
+            if (q3) {
+                document.getElementById('q3-title').textContent = q3.title;
+                document.getElementById('q3-code').textContent  = q3.code;
+            }
+
+            const timerEl = document.getElementById('q3-timer');
+            this.countdown(
+                600,
+                rem => {
+                    timerEl.textContent = this.fmt(rem);
+                    timerEl.className   = rem <= 30 ? 'timer danger'
+                                        : rem <= 60 ? 'timer warn' : 'timer';
+                },
+                () => this.onQ3Done()
+            );
+
+            this.speak(q3 ? q3.tts : '')
+                .then(() => this.startTranscription('sr-q3'));
+        } catch (err) {
+            document.getElementById('btn-next-q3').disabled = false;
+            this._camErr(err);
+        }
+    },
+
+    /* ── Q3 완료 ────────────────────────────────── */
+    async onQ3Done() {
+        this._stopTicker();
+        document.getElementById('btn-q3-done').disabled = true;
+
+        const text = this.stopTranscription('sr-q3');
+        this.transcripts[3] = text;
+
+        this.show('complete');
+
+        const st = document.getElementById('up-status-3');
         st.textContent = '영상을 업로드 중입니다...';
         st.className   = 'up-status';
 
@@ -500,7 +568,11 @@ const App = {
         const blob = await this.stopRec();
         this._releaseStream();
 
-        this.upload(blob, 2, text, p => {
+        // Q3 전사에 출제된 문제 ID 포함
+        const q3 = this.questions && this.questions.Q3;
+        const q3prefix = q3 ? `[문제: ${q3.questionId}] ${q3.title}\n\n` : '';
+
+        this.upload(blob, 3, q3prefix + text, p => {
             st.textContent = `업로드 중... ${Math.round(p * 100)}%`;
         }).then(r => {
             st.textContent = (r && r.success)
@@ -539,6 +611,8 @@ const App = {
         $('btn-q1-done').addEventListener('click',  () => this.onQ1Done());
         $('btn-next-q2').addEventListener('click',  () => this.onQ2Start());
         $('btn-q2-done').addEventListener('click',  () => this.onQ2Done());
+        $('btn-next-q3').addEventListener('click',  () => this.onQ3Start());
+        $('btn-q3-done').addEventListener('click',  () => this.onQ3Done());
 
         $('btn-exit').addEventListener('click', () => {
             this.applicant   = null;

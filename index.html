@@ -43,7 +43,8 @@
 
     <!-- 안내 -->
     <div class="info-box">
-      <p>📋 질문은 <strong>2가지</strong>이며, 각 항목당 <strong>10분 내외</strong>의 시간이 필요합니다.</p>
+      <p>📋 질문은 <strong>3가지</strong>이며, 각 항목당 <strong>10분 내외</strong>의 시간이 필요합니다.</p>
+      <p>💻 세 번째 질문에는 <strong>C언어 코드 분석</strong> 문제가 포함되어 있습니다.</p>
       <p>⚠️ 시작버튼을 누르면 <strong>중단 없이 제출</strong>되므로 신중하게 눌러주세요.</p>
     </div>
 
@@ -121,7 +122,7 @@
   <div class="cam-wrap">
     <video id="vid-q1" autoplay muted playsinline webkit-playsinline></video>
     <div class="cam-overlay">
-      <div class="q-badge">1 / 2</div>
+      <div class="q-badge">1 / 3</div>
       <div id="q1-timer" class="timer">10:00</div>
       <p class="overlay-q" id="overlay-q1"></p>
       <div class="badge-row">
@@ -155,7 +156,7 @@
   <div class="cam-wrap">
     <video id="vid-q2" autoplay muted playsinline webkit-playsinline></video>
     <div class="cam-overlay">
-      <div class="q-badge">2 / 2</div>
+      <div class="q-badge">2 / 3</div>
       <div id="q2-timer" class="timer">10:00</div>
       <p class="overlay-q" id="overlay-q2"></p>
       <div class="badge-row">
@@ -169,7 +170,46 @@
 
 
 <!-- ═══════════════════════════════════════════
-     SCREEN 7 · 완료
+     SCREEN 7 · Q2 완료 → Q3 대기
+══════════════════════════════════════════════ -->
+<div id="screen-q2-done" class="screen dark-center">
+  <div class="msg-card">
+    <div class="icon-big">✓</div>
+    <h2>두 번째 답변 완료</h2>
+    <p>준비가 되셨으면 다음 항목을 위하여<br>다음 버튼을 눌러주세요.</p>
+    <div id="up-status-2" class="up-status">업로드 중...</div>
+    <button id="btn-next-q3" class="btn btn-primary">다음 →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 8 · 질문 3 녹화 (C코드 분석)
+══════════════════════════════════════════════ -->
+<div id="screen-q3" class="screen">
+  <div class="code-screen">
+    <div class="code-header">
+      <span class="code-badge">3 / 3</span>
+      <div id="q3-timer" class="timer">10:00</div>
+    </div>
+    <p class="code-title" id="q3-title"></p>
+    <div class="code-block">
+      <pre id="q3-code"></pre>
+    </div>
+    <div class="code-footer">
+      <div class="badge-row">
+        <div class="rec-badge"><span class="rec-dot"></span>REC</div>
+        <div id="sr-q3" class="sr-badge" style="display:none"><span class="sr-dot"></span>음성 인식 중</div>
+      </div>
+      <button id="btn-q3-done" class="btn btn-done">완료</button>
+    </div>
+  </div>
+  <video id="vid-q3" autoplay muted playsinline webkit-playsinline class="q3-pip"></video>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 9 · 완료
 ══════════════════════════════════════════════ -->
 <div id="screen-complete" class="screen dark-center">
   <div class="msg-card">
@@ -181,7 +221,7 @@
       <strong>일주일 내로 결과를 연락드리겠습니다.</strong><br><br>
       감사합니다.
     </p>
-    <div id="up-status-2" class="up-status">영상을 업로드 중입니다...</div>
+    <div id="up-status-3" class="up-status">영상을 업로드 중입니다...</div>
     <button id="btn-exit" class="btn btn-primary" disabled>종료</button>
   </div>
 </div>
