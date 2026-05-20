@@ -29,11 +29,10 @@ const App = {
     init() {
         this._bindAll();
         this._loadVoices();
-        this._loadQuestions();
     },
 
-    _loadQuestions() {
-        fetch(`${API}/api/questions`)
+    _loadQuestions(applicantId) {
+        fetch(`${API}/api/questions?applicantId=${encodeURIComponent(applicantId)}`)
             .then(r => r.json())
             .then(data => { this.questions = data; })
             .catch(() => {});
@@ -289,6 +288,7 @@ const App = {
                 this.applicant  = { id: data.id, name, birthdate, phone };
                 this.currentAttempt = null;
                 this.transcripts = {};
+                this._loadQuestions(data.id);
                 msg.textContent = '✓ 저장되었습니다.';
                 msg.className   = 'save-msg ok';
             } else {
