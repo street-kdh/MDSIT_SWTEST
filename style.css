@@ -540,9 +540,9 @@ body {
 .up-status.ok  { color: var(--success); }
 .up-status.err { color: var(--error); }
 
-/* ── Q3 CODE QUESTION SCREEN ─────────────────────── */
-#screen-q3 { height: 100dvh; max-height: 100dvh; overflow: hidden; position: relative; }
-#screen-q3.active { display: flex; flex-direction: column; }
+/* ── CODE QUESTION SCREEN ────────────────────────── */
+.screen-code-q { height: 100dvh; max-height: 100dvh; overflow: hidden; position: relative; }
+.screen-code-q.active { display: flex; flex-direction: column; }
 
 .code-screen {
   flex: 1;

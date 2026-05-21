@@ -23,19 +23,159 @@ const App = {
     transcripts:      {},     // { 1: '...', 2: '...' } 최종 전사
 
     // 질문 (서버에서 동적 로드)
-    questions:        null,
+    config:           null,   // { teamName, questionCount, mainNotices }
+    qList:            null,   // 질문 배열 (resolved)
 
     /* ── Init ───────────────────────────────────── */
     init() {
         this._bindAll();
         this._loadVoices();
+        this._loadConfig();
     },
 
+    /* ── 공개 설정 로드 (페이지 초기화 시) ──────────── */
+    _loadConfig() {
+        fetch(`${API}/api/config`)
+            .then(r => r.json())
+            .then(data => {
+                this.config = data;
+                if (data.mainNotices && data.mainNotices.length) {
+                    this._applyMainNotices(data.mainNotices);
+                }
+            })
+            .catch(() => {});
+    },
+
+    _applyMainNotices(notices) {
+        const box = document.getElementById('info-box');
+        if (!box) return;
+        box.innerHTML = notices.map(n => `<p>${n}</p>`).join('');
+    },
+
+    /* ── 질문 로드 (저장 성공 후) ──────────────────── */
     _loadQuestions(applicantId) {
         fetch(`${API}/api/questions?applicantId=${encodeURIComponent(applicantId)}`)
             .then(r => r.json())
-            .then(data => { this.questions = data; })
+            .then(data => {
+                if (Array.isArray(data) && data.length) {
+                    this.qList = data;
+                    this._buildScreens();
+                }
+            })
             .catch(() => {});
+    },
+
+    /* ── 질문 화면 동적 생성 ─────────────────────── */
+    _buildScreens() {
+        // 이전에 생성된 화면 제거
+        document.querySelectorAll('.screen.dyn-q').forEach(el => el.remove());
+
+        const complete = document.getElementById('screen-complete');
+        const total    = this.qList.length;
+        const frag     = document.createDocumentFragment();
+
+        for (let i = 1; i <= total; i++) {
+            const q = this.qList[i - 1];
+
+            // 질문 화면
+            const qWrap = document.createElement('div');
+            qWrap.innerHTML = q.type === 'code'
+                ? this._codeScreenHtml(i, total, q)
+                : this._textScreenHtml(i, total);
+            const qScreen = qWrap.firstElementChild;
+            qScreen.classList.add('dyn-q');
+            frag.appendChild(qScreen);
+
+            // 완료 대기 화면 (마지막 질문 제외)
+            if (i < total) {
+                const wWrap = document.createElement('div');
+                wWrap.innerHTML = this._waitScreenHtml(i);
+                const wScreen = wWrap.firstElementChild;
+                wScreen.classList.add('dyn-q');
+                frag.appendChild(wScreen);
+            }
+        }
+
+        complete.parentNode.insertBefore(frag, complete);
+
+        // 이벤트 바인딩
+        for (let i = 1; i <= total; i++) {
+            const doneBtn = document.getElementById(`btn-q${i}-done`);
+            if (doneBtn) {
+                const n = i;
+                doneBtn.addEventListener('click', () => this.onQDone(n));
+            }
+            if (i < total) {
+                const nextBtn = document.getElementById(`btn-next-q${i + 1}`);
+                if (nextBtn) {
+                    const n = i;
+                    nextBtn.addEventListener('click', () => this.onQStart(n + 1));
+                }
+            }
+        }
+    },
+
+    _escHtml(s) {
+        return String(s || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    },
+
+    _textScreenHtml(n, total) {
+        return `<div id="screen-q${n}" class="screen">
+  <div class="cam-wrap">
+    <video id="vid-q${n}" autoplay muted playsinline webkit-playsinline></video>
+    <div class="cam-overlay">
+      <div class="q-badge">${n} / ${total}</div>
+      <div id="q${n}-timer" class="timer">10:00</div>
+      <p class="overlay-q" id="overlay-q${n}"></p>
+      <div class="badge-row">
+        <div class="rec-badge"><span class="rec-dot"></span>REC</div>
+        <div id="sr-q${n}" class="sr-badge" style="display:none"><span class="sr-dot"></span>음성 인식 중</div>
+      </div>
+      <button id="btn-q${n}-done" class="btn btn-done">완료</button>
+    </div>
+  </div>
+</div>`;
+    },
+
+    _codeScreenHtml(n, total, q) {
+        return `<div id="screen-q${n}" class="screen screen-code-q">
+  <div class="code-screen">
+    <div class="code-header">
+      <span class="code-badge">${n} / ${total}</span>
+      <div id="q${n}-timer" class="timer">10:00</div>
+    </div>
+    <p class="code-title" id="q${n}-title">${this._escHtml(q.title)}</p>
+    <div class="code-block">
+      <pre id="q${n}-code">${this._escHtml(q.code)}</pre>
+    </div>
+    <div class="code-footer">
+      <div class="badge-row">
+        <div class="rec-badge"><span class="rec-dot"></span>REC</div>
+        <div id="sr-q${n}" class="sr-badge" style="display:none"><span class="sr-dot"></span>음성 인식 중</div>
+      </div>
+      <button id="btn-q${n}-done" class="btn btn-done">완료</button>
+    </div>
+  </div>
+  <video id="vid-q${n}" autoplay muted playsinline webkit-playsinline class="q3-pip"></video>
+</div>`;
+    },
+
+    _waitScreenHtml(n) {
+        const ords = ['첫', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열'];
+        const ord  = ords[n - 1] || String(n);
+        return `<div id="screen-q${n}-done" class="screen dark-center">
+  <div class="msg-card">
+    <div class="icon-big">✓</div>
+    <h2>${ord} 번째 답변 완료</h2>
+    <p>준비가 되셨으면 다음 항목을 위하여<br>다음 버튼을 눌러주세요.</p>
+    <div id="up-status-${n}" class="up-status">업로드 중...</div>
+    <button id="btn-next-q${n + 1}" class="btn btn-primary">다음 →</button>
+  </div>
+</div>`;
     },
 
     /* ── Screen switcher ────────────────────────── */
@@ -285,9 +425,9 @@ const App = {
             const data = await res.json();
 
             if (data.success) {
-                this.applicant  = { id: data.id, name, birthdate, phone };
-                this.currentAttempt = null;
-                this.transcripts = {};
+                this.applicant       = { id: data.id, name, birthdate, phone };
+                this.currentAttempt  = null;
+                this.transcripts     = {};
                 this._loadQuestions(data.id);
                 msg.textContent = '✓ 저장되었습니다.';
                 msg.className   = 'save-msg ok';
@@ -361,7 +501,7 @@ const App = {
         this.onTest();
     },
 
-    /* ── 인터뷰 시작 → Q1 ──────────────────────── */
+    /* ── 인터뷰 시작 ────────────────────────────── */
     async onStart() {
         if (!document.getElementById('chk-consent').checked) {
             alert('개인정보 수집 · 이용에 동의해주세요.');
@@ -369,6 +509,10 @@ const App = {
         }
         if (!this.applicant) {
             alert('이름, 생년월일, 전화번호를 입력해주세요.');
+            return;
+        }
+        if (!this.qList || this.qList.length === 0) {
+            alert('질문 데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
             return;
         }
 
@@ -389,202 +533,116 @@ const App = {
             }
         } catch {}
 
+        await this.onQStart(1);
+    },
+
+    /* ── 질문 n 시작 ────────────────────────────── */
+    async onQStart(n) {
+        const q        = this.qList[n - 1];
+        const prevNext = n > 1 ? document.getElementById(`btn-next-q${n}`) : null;
+        if (prevNext) prevNext.disabled = true;
+
         try {
             const stream = await this.getStream();
-            document.getElementById('vid-q1').srcObject = stream;
-            this.show('q1');
+            document.getElementById(`vid-q${n}`).srcObject = stream;
+            this.show(`q${n}`);
             this.startRec(stream);
 
-            const timerEl = document.getElementById('q1-timer');
+            if (q.type === 'text') {
+                const ov = document.getElementById(`overlay-q${n}`);
+                if (ov) ov.textContent = q.display || '';
+            }
+
+            const timerEl = document.getElementById(`q${n}-timer`);
+            const dur     = q.durationSec || 600;
             this.countdown(
-                600,
+                dur,
                 rem => {
                     timerEl.textContent = this.fmt(rem);
                     timerEl.className   = rem <= 30 ? 'timer danger'
                                         : rem <= 60 ? 'timer warn' : 'timer';
                 },
-                () => this.onQ1Done()
+                () => this.onQDone(n)
             );
 
             // TTS 종료 후 음성 인식 시작 (TTS 음성이 인식되지 않도록)
-            const q1 = this.questions && this.questions.Q1;
-            if (q1) document.getElementById('overlay-q1').textContent = q1.display;
-            this.speak(q1 ? q1.tts : '')
-                .then(() => this.startTranscription('sr-q1'));
-        } catch (err) { this._camErr(err); }
-    },
-
-    /* ── Q1 완료 ────────────────────────────────── */
-    async onQ1Done() {
-        this._stopTicker();
-        document.getElementById('btn-q1-done').disabled = true;
-
-        const text = this.stopTranscription('sr-q1');
-        this.transcripts[1] = text;
-
-        const blob = await this.stopRec();
-        this._releaseStream();
-
-        this.show('q1-done');
-
-        const st = document.getElementById('up-status-1');
-        st.textContent = '업로드 중...';
-        st.className   = 'up-status';
-
-        const nextBtn = document.getElementById('btn-next-q2');
-        nextBtn.disabled = true;
-
-        this.upload(blob, 1, text, p => {
-            st.textContent = `업로드 중... ${Math.round(p * 100)}%`;
-        }).then(r => {
-            st.textContent = (r && r.success) ? '✓ 업로드 완료' : '업로드 실패';
-            st.className   = (r && r.success) ? 'up-status ok'  : 'up-status err';
-        }).catch(() => {
-            st.textContent = '업로드 실패 (네트워크를 확인해주세요)';
-            st.className   = 'up-status err';
-        }).finally(() => {
-            nextBtn.disabled = false;
-        });
-
-        document.getElementById('btn-q1-done').disabled = false;
-    },
-
-    /* ── Q2 시작 ────────────────────────────────── */
-    async onQ2Start() {
-        document.getElementById('btn-next-q2').disabled = true;   // 더블클릭 방지
-        try {
-            const stream = await this.getStream();
-            document.getElementById('vid-q2').srcObject = stream;
-            this.show('q2');
-            this.startRec(stream);
-
-            const timerEl = document.getElementById('q2-timer');
-            this.countdown(
-                600,
-                rem => {
-                    timerEl.textContent = this.fmt(rem);
-                    timerEl.className   = rem <= 30 ? 'timer danger'
-                                        : rem <= 60 ? 'timer warn' : 'timer';
-                },
-                () => this.onQ2Done()
-            );
-
-            const q2 = this.questions && this.questions.Q2;
-            if (q2) document.getElementById('overlay-q2').textContent = q2.display;
-            this.speak(q2 ? q2.tts : '')
-                .then(() => this.startTranscription('sr-q2'));
+            this.speak(q.tts || '')
+                .then(() => this.startTranscription(`sr-q${n}`));
         } catch (err) {
-            document.getElementById('btn-next-q2').disabled = false;
+            if (prevNext) prevNext.disabled = false;
             this._camErr(err);
         }
     },
 
-    /* ── Q2 완료 ────────────────────────────────── */
-    async onQ2Done() {
+    /* ── 질문 n 완료 ────────────────────────────── */
+    async onQDone(n) {
         this._stopTicker();
-        document.getElementById('btn-q2-done').disabled = true;
+        const doneBtn = document.getElementById(`btn-q${n}-done`);
+        if (doneBtn) doneBtn.disabled = true;
 
-        const text = this.stopTranscription('sr-q2');
-        this.transcripts[2] = text;
+        const text  = this.stopTranscription(`sr-q${n}`);
+        this.transcripts[n] = text;
 
-        const blob = await this.stopRec();
-        this._releaseStream();
+        const total  = this.qList.length;
+        const isLast = (n === total);
 
-        this.show('q2-done');
+        if (isLast) {
+            // 완료 화면 먼저 표시 후 업로드
+            this.show('complete');
+            const st      = document.getElementById('up-status-final');
+            const exitBtn = document.getElementById('btn-exit');
+            st.textContent   = '영상을 업로드 중입니다...';
+            st.className     = 'up-status';
+            exitBtn.disabled = true;
 
-        const st = document.getElementById('up-status-2');
-        st.textContent = '업로드 중...';
-        st.className   = 'up-status';
+            const blob = await this.stopRec();
+            this._releaseStream();
 
-        const nextBtn = document.getElementById('btn-next-q3');
-        nextBtn.disabled = true;
+            const q        = this.qList[n - 1];
+            const qPrefix  = (q.type === 'code' && q.questionId)
+                ? `[문제: ${q.questionId}] ${q.title}\n\n`
+                : '';
 
-        this.upload(blob, 2, text, p => {
-            st.textContent = `업로드 중... ${Math.round(p * 100)}%`;
-        }).then(r => {
-            st.textContent = (r && r.success) ? '✓ 업로드 완료' : '업로드 실패';
-            st.className   = (r && r.success) ? 'up-status ok'  : 'up-status err';
-        }).catch(() => {
-            st.textContent = '업로드 실패 (네트워크를 확인해주세요)';
-            st.className   = 'up-status err';
-        }).finally(() => {
-            nextBtn.disabled = false;
-        });
+            this.upload(blob, n, qPrefix + text, p => {
+                st.textContent = `업로드 중... ${Math.round(p * 100)}%`;
+            }).then(r => {
+                st.textContent = (r && r.success)
+                    ? '✓ 모든 영상이 성공적으로 업로드되었습니다.'
+                    : '업로드 실패. 관리자에게 문의해주세요.';
+                st.className = (r && r.success) ? 'up-status ok' : 'up-status err';
+            }).catch(() => {
+                st.textContent = '업로드 실패. 관리자에게 문의해주세요.';
+                st.className   = 'up-status err';
+            }).finally(() => {
+                exitBtn.disabled = false;
+            });
+        } else {
+            // 대기 화면으로 이동 후 백그라운드 업로드
+            const blob = await this.stopRec();
+            this._releaseStream();
 
-        document.getElementById('btn-q2-done').disabled = false;
-    },
+            this.show(`q${n}-done`);
 
-    /* ── Q3 시작 ────────────────────────────────── */
-    async onQ3Start() {
-        document.getElementById('btn-next-q3').disabled = true;
-        try {
-            const stream = await this.getStream();
-            document.getElementById('vid-q3').srcObject = stream;
-            this.show('q3');
-            this.startRec(stream);
+            const st      = document.getElementById(`up-status-${n}`);
+            const nextBtn = document.getElementById(`btn-next-q${n + 1}`);
+            st.textContent       = '업로드 중...';
+            st.className         = 'up-status';
+            if (nextBtn) nextBtn.disabled = true;
 
-            const q3 = this.questions && this.questions.Q3;
-            if (q3) {
-                document.getElementById('q3-title').textContent = q3.title;
-                document.getElementById('q3-code').textContent  = q3.code;
-            }
+            this.upload(blob, n, text, p => {
+                st.textContent = `업로드 중... ${Math.round(p * 100)}%`;
+            }).then(r => {
+                st.textContent = (r && r.success) ? '✓ 업로드 완료' : '업로드 실패';
+                st.className   = (r && r.success) ? 'up-status ok'  : 'up-status err';
+            }).catch(() => {
+                st.textContent = '업로드 실패 (네트워크를 확인해주세요)';
+                st.className   = 'up-status err';
+            }).finally(() => {
+                if (nextBtn) nextBtn.disabled = false;
+            });
 
-            const timerEl = document.getElementById('q3-timer');
-            this.countdown(
-                600,
-                rem => {
-                    timerEl.textContent = this.fmt(rem);
-                    timerEl.className   = rem <= 30 ? 'timer danger'
-                                        : rem <= 60 ? 'timer warn' : 'timer';
-                },
-                () => this.onQ3Done()
-            );
-
-            this.speak(q3 ? q3.tts : '')
-                .then(() => this.startTranscription('sr-q3'));
-        } catch (err) {
-            document.getElementById('btn-next-q3').disabled = false;
-            this._camErr(err);
+            if (doneBtn) doneBtn.disabled = false;
         }
-    },
-
-    /* ── Q3 완료 ────────────────────────────────── */
-    async onQ3Done() {
-        this._stopTicker();
-        document.getElementById('btn-q3-done').disabled = true;
-
-        const text = this.stopTranscription('sr-q3');
-        this.transcripts[3] = text;
-
-        this.show('complete');
-
-        const st = document.getElementById('up-status-3');
-        st.textContent = '영상을 업로드 중입니다...';
-        st.className   = 'up-status';
-
-        const exitBtn = document.getElementById('btn-exit');
-        exitBtn.disabled = true;
-
-        const blob = await this.stopRec();
-        this._releaseStream();
-
-        // Q3 전사에 출제된 문제 ID 포함
-        const q3 = this.questions && this.questions.Q3;
-        const q3prefix = q3 ? `[문제: ${q3.questionId}] ${q3.title}\n\n` : '';
-
-        this.upload(blob, 3, q3prefix + text, p => {
-            st.textContent = `업로드 중... ${Math.round(p * 100)}%`;
-        }).then(r => {
-            st.textContent = (r && r.success)
-                ? '✓ 모든 영상이 성공적으로 업로드되었습니다.'
-                : '업로드 실패. 관리자에게 문의해주세요.';
-            st.className = (r && r.success) ? 'up-status ok' : 'up-status err';
-        }).catch(() => {
-            st.textContent = '업로드 실패. 관리자에게 문의해주세요.';
-            st.className   = 'up-status err';
-        }).finally(() => {
-            exitBtn.disabled = false;
-        });
     },
 
     /* ── Event binding ──────────────────────────── */
@@ -608,16 +666,11 @@ const App = {
             $('play-after').style.display = 'flex';
         });
 
-        $('btn-q1-done').addEventListener('click',  () => this.onQ1Done());
-        $('btn-next-q2').addEventListener('click',  () => this.onQ2Start());
-        $('btn-q2-done').addEventListener('click',  () => this.onQ2Done());
-        $('btn-next-q3').addEventListener('click',  () => this.onQ3Start());
-        $('btn-q3-done').addEventListener('click',  () => this.onQ3Done());
-
         $('btn-exit').addEventListener('click', () => {
-            this.applicant   = null;
+            this.applicant      = null;
             this.currentAttempt = null;
-            this.transcripts = {};
+            this.transcripts    = {};
+            this.qList          = null;
             $('save-msg').textContent = '';
             $('save-msg').className   = 'save-msg';
             $('chk-consent').checked  = false;
