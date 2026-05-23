@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0D1B2A">
+  <title>MDS인텔리전스 사전인터뷰 - 시스템 점검 중</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0D1B2A 0%, #1B263B 100%);
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      max-width: 180px;
+      width: 60%;
+      height: auto;
+      margin-bottom: 48px;
+      opacity: 0.95;
+    }
+
+    .icon {
+      font-size: 56px;
+      margin-bottom: 24px;
+      display: inline-block;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      letter-spacing: -0.3px;
+    }
+
+    .divider {
+      width: 40px;
+      height: 2px;
+      background: #4FC3F7;
+      margin: 0 auto 24px;
+      border-radius: 2px;
+    }
+
+    p {
+      font-size: 15px;
+      line-height: 1.75;
+      color: #c5cdd6;
+      margin-bottom: 16px;
+    }
+
+    .highlight {
+      color: #4FC3F7;
+      font-weight: 500;
+    }
+
+    .notice {
+      margin-top: 32px;
+      padding: 16px 20px;
+      background: rgba(79, 195, 247, 0.08);
+      border-left: 3px solid #4FC3F7;
+      border-radius: 4px;
+      text-align: left;
+      font-size: 14px;
+      color: #b8c1cb;
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 40px;
+      font-size: 12px;
+      color: #6c7884;
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 19px; }
+      p { font-size: 14px; }
+      .icon { font-size: 48px; }
+      .logo { margin-bottom: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="mds-logo.png" alt="MDS인텔리전스" class="logo">
+
+    <div class="icon">🛠️</div>
+
+    <h1>시스템 점검 안내</h1>
+
+    <div class="divider"></div>
+
+    <p>
+      현재 <span class="highlight">서버 점검 작업</span>으로 인해<br>
+      사전인터뷰 페이지 이용이 일시 중단되었습니다.
+    </p>
+
+    <p>
+      빠른 시일 내에 복구하여<br>
+      개별 안내드리도록 하겠습니다.
+    </p>
+
+    <div class="notice">
+      💬 <strong>안내사항</strong><br>
+      복구 완료 후 인터뷰 일정은 담당자가 개별 연락드릴 예정입니다.
+      불편을 드려 진심으로 죄송합니다.
+    </div>
+
+    <div class="footer">
+      MDS인텔리전스 소프트웨어검증팀
+    </div>
+  </div>
+</body>
+</html>
