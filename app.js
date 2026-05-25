@@ -368,6 +368,10 @@ const App = {
             if (this.currentAttempt) {
                 qs.set('attempt', this.currentAttempt);
             }
+            const qDef = this.qList && this.qList[qNum - 1];
+            if (qDef && qDef.type === 'code' && qDef.questionId) {
+                qs.set('questionId', qDef.questionId);
+            }
             xhr.open('POST', `${API}/api/upload?` + qs);
 
             if (onProgress) {
