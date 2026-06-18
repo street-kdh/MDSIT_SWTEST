@@ -511,6 +511,10 @@ const App = {
             alert('개인정보 수집 · 이용에 동의해주세요.');
             return;
         }
+        if (!document.getElementById('chk-consent-bio').checked) {
+            alert('생체정보 수집 · 이용에 동의해주세요.');
+            return;
+        }
         if (!this.applicant) {
             alert('이름, 생년월일, 전화번호를 입력해주세요.');
             return;
@@ -657,9 +661,11 @@ const App = {
         $('btn-test').addEventListener('click',      () => this.onTest());
         $('btn-start').addEventListener('click',     () => this.onStart());
 
-        $('chk-consent').addEventListener('change', e => {
-            $('btn-start').disabled = !e.target.checked;
-        });
+        const updateStartBtn = () => {
+            $('btn-start').disabled = !($('chk-consent').checked && $('chk-consent-bio').checked);
+        };
+        $('chk-consent').addEventListener('change', updateStartBtn);
+        $('chk-consent-bio').addEventListener('change', updateStartBtn);
 
         $('btn-play-test').addEventListener('click', () => this.onPlayTest());
         $('btn-replay').addEventListener('click',    () => this.onReplay());
@@ -678,6 +684,7 @@ const App = {
             $('save-msg').textContent = '';
             $('save-msg').className   = 'save-msg';
             $('chk-consent').checked  = false;
+            $('chk-consent-bio').checked = false;
             $('btn-start').disabled   = true;
             this.show('main');
         });
